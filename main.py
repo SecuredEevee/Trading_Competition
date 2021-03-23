@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import *
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
+from PyQt5 import uic, QtGui, QtWidgets
 from PyQt5.QtCore import Qt, QDate
 import pandas as pd
 import json
@@ -47,12 +47,13 @@ class MyWindow(QMainWindow):
         self.refresh_button = self.findChild(QtWidgets.QPushButton, 'refresh_button')
         self.refresh_rank_button = self.findChild(QtWidgets.QPushButton, 'refresh_rank_button')
         self.load_from_excel_button = self.findChild(QtWidgets.QPushButton, 'load_from_excel_button')
-        self.save_to_excel_button = self.findChild(QtWidgets.QPushButton, 'save_to_excel_button')
+        self.screenshot_button = self.findChild(QtWidgets.QPushButton, 'screenshot_button')
 
         self.table_view = self.findChild(QtWidgets.QTableView, 'tableView')
         self.table_view.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.start_date = self.findChild(QtWidgets.QDateEdit, 'start_date')
         self.last_date = self.findChild(QtWidgets.QDateEdit, 'last_date')
+        self.avg_ratio = self.findChild(QtWidgets.QTextBrowser, 'ratiotextBrowser')
 
         if isInit:
             self.last_date.setDate(QDate.currentDate())
@@ -77,6 +78,7 @@ class MyWindow(QMainWindow):
         self.refresh_button.clicked.connect(self.refreshResult)
         self.refresh_rank_button.clicked.connect(self.refreshRank)
         self.load_from_excel_button.clicked.connect(self.load_from_excel)
+        self.screenshot_button.clicked.connect(self.take_a_screenshot)
 
 
     def load_from_excel(self):
@@ -87,8 +89,8 @@ class MyWindow(QMainWindow):
         dataframe = pd.read_excel(fname[0],dtype={'stock_code':int})
         for idx, row in dataframe.iterrows():
             if pd.isna(row['std_price']):
-                dataframe.at[idx, 'std_price'] = get_KRX_price('{0:06d}'.format(row['stock_code']))
-                time.sleep(0.3)
+                dataframe.at[idx, 'std_price'] = int(get_KRX_price('{0:06d}'.format(row['stock_code'])))
+                time.sleep(0.2)
             else:
                 dataframe.at[idx, 'std_price'] = int(row['std_price'])
 
@@ -104,8 +106,10 @@ class MyWindow(QMainWindow):
         self.refreshView(True)
 
 
-    def save_to_excel(self):
-        pass
+    def take_a_screenshot(self):
+        filename = self.last_date.date().toString('yyyy-MM-dd_result.png')
+        screen = QtGui.QScreen.grabWindow(app.primaryScreen(), window.winId())  # (메인화면, 현재위젯)
+        screen.save(filename, 'png')
 
     def insert_row(self):
         pass
@@ -149,7 +153,17 @@ class MyWindow(QMainWindow):
             # print(row['last_price'])
             time.sleep(0.2)
 
-        self.df['rank'] = self.df['ratio (%)'].rank(ascending=False)
+
+        self.df['rank'] = self.df['ratio (%)'].rank(ascending=False, method='min')
+        ratio = self.df['ratio (%)'].mean()
+
+        cursor = self.avg_ratio.textCursor()
+        if ratio > 0:
+            cursor.insertHtml('''<p><span style="color: red;">{0:.2f}%</span>'''.format((ratio)))
+        elif ratio < 0:
+            cursor.insertHtml('''<p><span style="color: blue;">{0:.2f}%</span>'''.format((ratio)))
+        else:
+            cursor.insertHtml('''<p><span style="color: black;">{0:.2f}%</span>'''.format((ratio)))
         self.last_date.setDate(QDate.currentDate())
         if not donotRefreshView:
             self.refreshView()
@@ -208,8 +222,8 @@ class PandasTableModel(QtGui.QStandardItemModel):
                 else:
                     data_row.append(StandardItem(''))
             data_row.extend(QtGui.QStandardItem("{}".format(x)) for x in row[i+1:i+5])
-            data_row.append(StandardItem(str(row[i+5]))) # std_price
-            last_price_item = StandardItem(str(row[i+6]))
+            data_row.append(StandardItem(str(int(row[i+5])))) # std_price
+            last_price_item = StandardItem(str(int(row[i+6])))
             if row[i+5] < row[i+6]:
                 last_price_item.setForeground(QtGui.QColor('red'))
             elif row[i+5] > row[i+6]:

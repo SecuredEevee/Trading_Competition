@@ -134,17 +134,22 @@
      <string>Load xlsx</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="save_to_excel_button">
+   <widget class="QPushButton" name="screenshot_button">
     <property name="geometry">
      <rect>
-      <x>660</x>
+      <x>644</x>
       <y>10</y>
-      <width>75</width>
+      <width>91</width>
       <height>23</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <pointsize>7</pointsize>
+     </font>
+    </property>
     <property name="text">
-     <string>Export xlsx</string>
+     <string>Take screenshot</string>
     </property>
    </widget>
    <widget class="QLabel" name="avg_ration">
