@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import *
-from PyQt5 import uic, QtGui, QtWidgets
+from PyQt5 import uic, QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QDate
 import pandas as pd
 import json
@@ -25,6 +25,7 @@ def get_KRX_price(stock_code):
 json_data =''
 isInit = False
 df = ''
+last_date =''
 try:
     with open('result.json', encoding='utf-8') as json_file:
         json_data = json.load(json_file)
@@ -32,6 +33,7 @@ try:
     df = pd.DataFrame(json_data)
     with open('info.json') as json_file:
         json_data = json.load(json_file)
+        last_date = json_data['last_date']
 
 except Exception as e:
     isInit = True
@@ -72,14 +74,38 @@ class MyWindow(QMainWindow):
             self.last_date.setDate(QDate.fromString(json_data['last_date'], 'yyyy-MM-dd'))
 
 
-        self.save_button.clicked.connect(
-            self.saveButtonPressed)  # Remember to pass the definition/method, not the return value!
+        self.save_button.clicked.connect(self.saveButtonPressed)  # Remember to pass the definition/method, not the return value!
 
         self.refresh_button.clicked.connect(self.refreshResult)
         self.refresh_rank_button.clicked.connect(self.refreshRank)
         self.load_from_excel_button.clicked.connect(self.load_from_excel)
         self.screenshot_button.clicked.connect(self.take_a_screenshot)
 
+        # selection_model = self.table_view.selectionModel()
+        # selection_model.currentChanged.connect(self.on_currentChanged)
+        self.table_view.model().dataChanged.connect(self.on_dataChanged)
+        # selection_model.selectionChanged.connect(self.on_selectionChanged)
+
+    # @QtCore.pyqtSlot('QItemSelection', 'QItemSelection')
+    # def on_selectionChanged(self, selected, deselected):
+    #     print("selected: ")
+    #     for ix in selected.indexes():
+    #         print(ix.data())
+    #
+    #     print("deselected: ")
+    #     for ix in deselected.indexes():
+    #         print(ix.data())
+
+    # @QtCore.pyqtSlot('QModelIndex', 'QModelIndex')
+    # def on_currentChanged(self, current, previous):
+    #     print('data changed', current, previous)
+
+    @QtCore.pyqtSlot('QModelIndex', 'QModelIndex')
+    def on_dataChanged(self, topleft, bottomright):
+        # print(topleft.row(), topleft.column(), topleft.data())
+        # print(bottomright.row(), bottomright.column(), bottomright.data())
+        if topleft.column() == 11: # hold_date column
+            self.df.at[str(topleft.row()), 'hold_date'] = topleft.data()
 
     def load_from_excel(self):
         fname = QFileDialog.getOpenFileName(self, 'Open base xlsx file', './')
@@ -169,9 +195,9 @@ class MyWindow(QMainWindow):
             self.refreshView()
 
     def refreshRank(self):
-
-        today = QDate.currentDate()
-        if self.last_date.date() == today :
+        global last_date
+        today = QDate.currentDate().toString('yyyy-MM-dd')
+        if last_date == today :
             if self.start_date.date() != self.last_date.date():
                 QMessageBox.critical(self, '순위 갱신 에러', '순위 갱신은 내일 해주세요')
                 print('순위 갱신은 내일 해주세요')
@@ -185,6 +211,7 @@ class MyWindow(QMainWindow):
         for index, row in self.df.iterrows():
             self.df.at[index, 'rank_list'].append(int(row['rank']))
         self.refreshView()
+        last_date = today
 
 
     def saveButtonPressed(self):
