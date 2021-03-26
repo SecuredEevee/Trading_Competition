@@ -237,7 +237,9 @@ class PandasTableModel(QtGui.QStandardItemModel):
         self._data = data
         # self._data = self.df
         # for row in self.df.values.tolist():
-        for row in data.values.tolist():
+        data_list = data.values.tolist()
+        total_num_of_person = len(data_list)
+        for row in data_list:
             data_row = []
             i = 0
             if len(row) >= 12:
@@ -249,8 +251,8 @@ class PandasTableModel(QtGui.QStandardItemModel):
                 else:
                     data_row.append(StandardItem(''))
             data_row.extend(QtGui.QStandardItem("{}".format(x)) for x in row[i+1:i+5])
-            data_row.append(StandardItem(str(int(row[i+5])))) # std_price
-            last_price_item = StandardItem(str(int(row[i+6])))
+            data_row.append(StandardItem(format(int(row[i+5]), ','))) # std_price
+            last_price_item = StandardItem(format(int(row[i+6]), ','))
             if row[i+5] < row[i+6]:
                 last_price_item.setForeground(QtGui.QColor('red'))
             elif row[i+5] > row[i+6]:
@@ -264,6 +266,19 @@ class PandasTableModel(QtGui.QStandardItemModel):
             data_row.append(item)
             data_row.extend(QtGui.QStandardItem("{}".format(x)) for x in row[i+8:])
             for x in data_row:
+                if int(row[0]) == 1 :
+                    x.setBackground(QtGui.QColor(255, 211, 0))
+                    # x.setFont(QtGui.QFont('Gothic', 12, QtGui.QFont.Bold))
+                elif int(row[0]) == 2 :
+                    x.setBackground(QtGui.QColor(192, 192, 192))
+                elif int(row[0]) == 3 :
+                    x.setBackground(QtGui.QColor(205, 127, 50))
+                elif int(row[0]) <= 10:
+                    x.setBackground(QtGui.QColor(204,255,255))
+                else:
+                    if total_num_of_person - 10 < int(row[0]) <= total_num_of_person:
+                        x.setBackground(QtGui.QColor(241,156,187))
+
                 x.setTextAlignment(Qt.AlignCenter)
             self.appendRow(data_row)
             self.sort(0, Qt.AscendingOrder)
