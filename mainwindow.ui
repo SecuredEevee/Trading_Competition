@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1122</width>
-    <height>890</height>
+    <width>1600</width>
+    <height>1200</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -110,8 +110,8 @@
      <rect>
       <x>10</x>
       <y>42</y>
-      <width>1101</width>
-      <height>821</height>
+      <width>1400</width>
+      <height>1100</height>
      </rect>
     </property>
     <property name="sortingEnabled">
@@ -184,7 +184,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1122</width>
+     <width>1600</width>
      <height>21</height>
     </rect>
    </property>

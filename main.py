@@ -81,24 +81,10 @@ class MyWindow(QMainWindow):
         self.load_from_excel_button.clicked.connect(self.load_from_excel)
         self.screenshot_button.clicked.connect(self.take_a_screenshot)
 
-        # selection_model = self.table_view.selectionModel()
-        # selection_model.currentChanged.connect(self.on_currentChanged)
+
         self.table_view.model().dataChanged.connect(self.on_dataChanged)
-        # selection_model.selectionChanged.connect(self.on_selectionChanged)
 
-    # @QtCore.pyqtSlot('QItemSelection', 'QItemSelection')
-    # def on_selectionChanged(self, selected, deselected):
-    #     print("selected: ")
-    #     for ix in selected.indexes():
-    #         print(ix.data())
-    #
-    #     print("deselected: ")
-    #     for ix in deselected.indexes():
-    #         print(ix.data())
 
-    # @QtCore.pyqtSlot('QModelIndex', 'QModelIndex')
-    # def on_currentChanged(self, current, previous):
-    #     print('data changed', current, previous)
 
     @QtCore.pyqtSlot('QModelIndex', 'QModelIndex')
     def on_dataChanged(self, topleft, bottomright):
@@ -160,12 +146,28 @@ class MyWindow(QMainWindow):
                                                                           'theme', 'std_price', 'last_price',
                                                                           'ratio (%)', 'market', 'pick_reason',
                                                                           'hold_date']).copy()))
+            self.refresh_avg_ratio()
         else:
             self.table_view.setModel(PandasTableModel(self.df.reindex(columns=['rank','stock', 'name',
                                                                           'type_of_business', 'theme',
                                                                           'std_price', 'last_price',
                                                                           'ratio (%)', 'market', 'pick_reason',
                                                                           'hold_date']).copy()))
+
+
+    def refresh_avg_ratio(self):
+        try:
+            ratio = self.df['ratio (%)'].mean()
+            cursor = self.avg_ratio.textCursor()
+            if ratio > 0:
+                cursor.insertHtml('''<p align=\'center\'><span style="color: red;">{0:.2f}%</span></p>'''.format(ratio))
+            elif ratio < 0:
+                cursor.insertHtml('''<p align=\'center\'><span style="color: blue;">{0:.2f}%</span></p>'''.format(ratio))
+            else:
+                cursor.insertHtml('''<p align=\'center\'><span style="color: black;">{0:.2f}%</span></p>'''.format(ratio))
+
+        except Exception as e:
+            pass
 
     def refreshResult(self, donotRefreshView=False):
         # print('refresh')
@@ -181,15 +183,9 @@ class MyWindow(QMainWindow):
 
 
         self.df['rank'] = self.df['ratio (%)'].rank(ascending=False, method='min')
-        ratio = self.df['ratio (%)'].mean()
 
-        cursor = self.avg_ratio.textCursor()
-        if ratio > 0:
-            cursor.insertHtml('''<p><span style="color: red;">{0:.2f}%</span>'''.format((ratio)))
-        elif ratio < 0:
-            cursor.insertHtml('''<p><span style="color: blue;">{0:.2f}%</span>'''.format((ratio)))
-        else:
-            cursor.insertHtml('''<p><span style="color: black;">{0:.2f}%</span>'''.format((ratio)))
+        self.refresh_avg_ratio()
+
         self.last_date.setDate(QDate.currentDate())
         if not donotRefreshView:
             self.refreshView()
@@ -216,16 +212,18 @@ class MyWindow(QMainWindow):
 
     def saveButtonPressed(self):
         # This is executed when the button is pressed
-        date_info= {'start_date': self.start_date.date().toString('yyyy-MM-dd'),
-                    'last_date': self.last_date.date().toString('yyyy-MM-dd')}
-        with open('info.json', 'w', encoding='utf-8') as json_file:
-            json.dump(date_info, json_file, indent=4)
+        try:
+            date_info= {'start_date': self.start_date.date().toString('yyyy-MM-dd'),
+                        'last_date': self.last_date.date().toString('yyyy-MM-dd')}
+            with open('info.json', 'w', encoding='utf-8') as json_file:
+                json.dump(date_info, json_file, indent=4)
 
-        df_copy = self.df.copy().drop(columns=['ratio (%)', 'rank', 'prev_rank'])
-        df_copy.to_json('result.json',force_ascii=False, indent=4)
+            df_copy = self.df.copy().drop(columns=['ratio (%)', 'rank', 'prev_rank'])
+            df_copy.to_json('result.json',force_ascii=False, indent=4)
 
-        msgBox = QtWidgets.QMessageBox.information(self, ':)', 'Save complete')
-
+            msgBox = QtWidgets.QMessageBox.information(self, ':)', 'Save complete')
+        except Exception as e:
+            msgBox = QtWidgets.QMessageBox.critical(self, ':(', 'Something Wrong, Check the Procedure')
 
 class StandardItem(QtGui.QStandardItem):
     def __lt__(self, other):
