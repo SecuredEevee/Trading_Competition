@@ -160,11 +160,11 @@ class MyWindow(QMainWindow):
             ratio = self.df['ratio (%)'].mean()
             cursor = self.avg_ratio.textCursor()
             if ratio > 0:
-                cursor.insertHtml('''<p align=\'center\'><span style="color: red;">{0:.2f}%</span></p>'''.format(ratio))
+                cursor.insertHtml('''<span style="color: red;"><p align=\'center\'>{0:.2f}%'''.format(ratio))
             elif ratio < 0:
-                cursor.insertHtml('''<p align=\'center\'><span style="color: blue;">{0:.2f}%</span></p>'''.format(ratio))
+                cursor.insertHtml('''<span style="color: blue;"><p align=\'center\'>{0:.2f}%</p></span>'''.format(ratio))
             else:
-                cursor.insertHtml('''<p align=\'center\'><span style="color: black;">{0:.2f}%</span></p>'''.format(ratio))
+                cursor.insertHtml('''<span style="color: black;"><p align=\'center\'>{0:.2f}%</p></span>'''.format(ratio))
 
         except Exception as e:
             pass
