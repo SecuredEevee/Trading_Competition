@@ -91,7 +91,9 @@ class MyWindow(QMainWindow):
         # print(topleft.row(), topleft.column(), topleft.data())
         # print(bottomright.row(), bottomright.column(), bottomright.data())
         if topleft.column() == 11: # hold_date column
-            self.df.at[str(topleft.row()), 'hold_date'] = topleft.data()
+            stock_name = self.table_view.model().index(topleft.row(),2).data()
+            idx = self.df[self.df['stock'] == stock_name].index.values[0]
+            self.df.at[idx, 'hold_date'] = topleft.data()
 
     def load_from_excel(self):
         fname = QFileDialog.getOpenFileName(self, 'Open base xlsx file', './')
@@ -158,7 +160,9 @@ class MyWindow(QMainWindow):
     def refresh_avg_ratio(self):
         try:
             ratio = self.df['ratio (%)'].mean()
+            self.avg_ratio.clear()
             cursor = self.avg_ratio.textCursor()
+
             if ratio > 0:
                 cursor.insertHtml('''<span style="color: red;"><p align=\'center\'>{0:.2f}%'''.format(ratio))
             elif ratio < 0:
@@ -183,8 +187,6 @@ class MyWindow(QMainWindow):
 
 
         self.df['rank'] = self.df['ratio (%)'].rank(ascending=False, method='min')
-
-        self.refresh_avg_ratio()
 
         self.last_date.setDate(QDate.currentDate())
         if not donotRefreshView:
