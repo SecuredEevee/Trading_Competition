@@ -124,7 +124,7 @@ class MyWindow(QMainWindow):
         filename = self.last_date.date().toString('yyyy-MM-dd_result.png')
         screen = QtGui.QScreen.grabWindow(app.primaryScreen(), window.winId())  # (메인화면, 현재위젯)
         screen.save(filename, 'png')
-
+        msgBox = QtWidgets.QMessageBox.information(self, ':)', 'Capture complete ' + filename)
     def insert_row(self):
         pass
 
@@ -210,6 +210,7 @@ class MyWindow(QMainWindow):
             self.df.at[index, 'rank_list'].append(int(row['rank']))
         self.refreshView()
         last_date = today
+        msgBox = QtWidgets.QMessageBox.information(self, ':)', today + ' Ranking Update complete')
 
 
     def saveButtonPressed(self):
