@@ -94,6 +94,7 @@ class MyWindow(QMainWindow):
             stock_name = self.table_view.model().index(topleft.row(),2).data()
             idx = self.df[self.df['stock'] == stock_name].index.values[0]
             self.df.at[idx, 'hold_date'] = topleft.data()
+            # print(self.df)
 
     def load_from_excel(self):
         fname = QFileDialog.getOpenFileName(self, 'Open base xlsx file', './')
@@ -155,7 +156,7 @@ class MyWindow(QMainWindow):
                                                                           'std_price', 'last_price',
                                                                           'ratio (%)', 'market', 'pick_reason',
                                                                           'hold_date']).copy()))
-
+        self.table_view.model().dataChanged.connect(self.on_dataChanged)
 
     def refresh_avg_ratio(self):
         try:
