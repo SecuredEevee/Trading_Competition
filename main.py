@@ -131,11 +131,12 @@ class MyWindow(QMainWindow):
 
     def get_table(self):
 
-        self.df['rank'] = self.df['prev_rank'] = 0
-
+        self.df['rank'] =  0
+        if 'prev_rank' in self.df.columns:
+            self.df['prev_rank'] = 0
         for idx, row in self.df.iterrows():
             self.df.at[idx, 'rank'] = row['rank_list'][-1]
-            if len(self.df['rank_list'] ) > 1:
+            if len(self.df['rank_list'][0] ) > 1:
                 self.df.at[idx, 'prev_rank'] = row['rank_list'][-2]
 
         self.df['ratio (%)'] = (self.df['last_price'] - self.df['std_price']) / self.df['std_price'] * 100
@@ -143,7 +144,7 @@ class MyWindow(QMainWindow):
         self.refreshView()
 
     def refreshView(self, _isInit=False):
-        if not _isInit:
+        if not _isInit and 'prev_rank' in self.df.columns:
             self.table_view.setModel(PandasTableModel(self.df.reindex(columns=['rank', 'prev_rank','stock',
                                                                           'name', 'type_of_business',
                                                                           'theme', 'std_price', 'last_price',
@@ -222,7 +223,10 @@ class MyWindow(QMainWindow):
             with open('info.json', 'w', encoding='utf-8') as json_file:
                 json.dump(date_info, json_file, indent=4)
 
-            df_copy = self.df.copy().drop(columns=['ratio (%)', 'rank', 'prev_rank'])
+            if 'prev_rank' not in self.df.index:
+                df_copy = self.df.copy().drop(columns=['ratio (%)', 'rank'])
+            else:
+                df_copy = self.df.copy().drop(columns=['ratio (%)', 'rank', 'prev_rank'])
             df_copy.to_json('result.json',force_ascii=False, indent=4)
 
             msgBox = QtWidgets.QMessageBox.information(self, ':)', 'Save complete')

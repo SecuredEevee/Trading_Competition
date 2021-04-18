@@ -33,6 +33,12 @@
 
 ## Update History
 
+* 0.2.3 
+    * Fix error that occurs at first start
+
+* 0.2.2 
+    * Fix Bug #5
+
 * 0.1.0
     * First Release
 
